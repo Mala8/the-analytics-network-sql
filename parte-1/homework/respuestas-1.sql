@@ -63,15 +63,46 @@ where date between '2022-10-01' and '2022-11-10';
 
 -- ## Semana 1 - Parte B
 -- 1. Cuales son los paises donde la empresa tiene tiendas?
-
+select distinct country as Paises
+from stg.store_master;
 -- 2. Cuantos productos por subcategoria tiene disponible para la venta?
-
+select 
+	subcategory, 
+	count (distinct product_code)
+from stg.product_master
+where is_active = 'true'
+group by subcategory;
+--Otra forma--
+select 
+	subcategory, 
+	count(*) as cantidad_de_productos
+from stg.product_master
+group by subcategory;
 -- 3. Cuales son las ordenes de venta de Argentina de mayor a $100.000?
-
+select 
+	os.order_number,
+	round(os.sale,2)
+from stg.order_line_sale os
+left join stg.store_master sm
+on os.store = sm.store_id
+where country = 'Argentina'
+and sale > 100000;
 -- 4. Obtener los decuentos otorgados durante Noviembre de 2022 en cada una de las monedas?
-
+select
+	currency,
+	round(sum(promotion),2) Discount
+from stg.order_line_sale
+where date between '2022-11-01' and '2022-11-30'
+group by
+	currency;
 -- 5. Obtener los impuestos pagados en Europa durante el 2022.
-
+select 
+	currency,
+	round(sum(tax),2) tax
+from stg.order_line_sale
+where currency = 'EUR'
+and date between '2022-01-01' and '2022-12-31'
+group by currency;
 -- 6. En cuantas ordenes se utilizaron creditos?
 
 -- 7. Cual es el % de descuentos otorgados (sobre las ventas) por tienda?
