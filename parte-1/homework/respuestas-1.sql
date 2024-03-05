@@ -109,9 +109,25 @@ select
 from stg.order_line_sale
 where credit is not null;
 -- 7. Cual es el % de descuentos otorgados (sobre las ventas) por tienda?
-
+select
+	store,
+	round((sum(promotion)/sum(sale)),4) *100 as Disscount
+from stg.order_line_sale ols
+group by
+	store
+order by
+	store;
 -- 8. Cual es el inventario promedio por dia que tiene cada tienda?
-
+select 
+	date,
+	store_id,
+	round(avg((initial + final)/2),2)
+from stg.inventory
+group by
+	date,
+	store_id
+order by
+	date
 -- 9. Obtener las ventas netas y el porcentaje de descuento otorgado por producto en Argentina.
 
 -- 10. Las tablas "market_count" y "super_store_count" representan dos sistemas distintos que usa la empresa para contar la cantidad de gente que ingresa a tienda, uno para las tiendas de Latinoamerica y otro para Europa. Obtener en una unica tabla, las entradas a tienda de ambos sistemas.
