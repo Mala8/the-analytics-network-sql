@@ -104,7 +104,10 @@ where currency = 'EUR'
 and date between '2022-01-01' and '2022-12-31'
 group by currency;
 -- 6. En cuantas ordenes se utilizaron creditos?
-
+select
+	count(distinct order_number) count_credit
+from stg.order_line_sale
+where credit is not null;
 -- 7. Cual es el % de descuentos otorgados (sobre las ventas) por tienda?
 
 -- 8. Cual es el inventario promedio por dia que tiene cada tienda?
