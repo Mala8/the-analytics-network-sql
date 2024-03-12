@@ -140,7 +140,20 @@ where sm.country = 'Argentina'
 group by
 	product;
 -- 10. Las tablas "market_count" y "super_store_count" representan dos sistemas distintos que usa la empresa para contar la cantidad de gente que ingresa a tienda, uno para las tiendas de Latinoamerica y otro para Europa. Obtener en una unica tabla, las entradas a tienda de ambos sistemas.
---Ver cambio de formaro Fecha
+select
+	store_id,
+	TO_DATE(CAST(date AS VARCHAR), 'YYYYMMDD') date,
+	traffic
+from stg.market_count 
+union all
+select
+	store_id,
+	TO_DATE(date, 'YYYY-MM-DD') date,
+	traffic
+from stg.super_store_count
+order by
+	store_id,
+	date;
 -- 11. Cuales son los productos disponibles para la venta (activos) de la marca Phillips?
 select *
 from stg.product_master
@@ -166,8 +179,12 @@ group by
 	ols.product,
 	ols.currency;
 -- 14. Cual es la tasa de impuestos que se pago por cada orden de venta?
-
-
+Select
+	order_number,
+	round((sum(coalesce(tax,0)) / sum(sale))*100,2) TaxRate
+from stg.order_line_sale
+group by
+	order_number;
 -- ## Semana 2 - Parte A
 
 -- 1. Mostrar nombre y codigo de producto, categoria y color para todos los productos de la marca Philips y Samsung, mostrando la leyenda "Unknown" cuando no hay un color disponible
