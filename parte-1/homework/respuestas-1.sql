@@ -186,9 +186,15 @@ from stg.order_line_sale
 group by
 	order_number;
 -- ## Semana 2 - Parte A
-
 -- 1. Mostrar nombre y codigo de producto, categoria y color para todos los productos de la marca Philips y Samsung, mostrando la leyenda "Unknown" cuando no hay un color disponible
-
+select 
+	name,
+	product_code,
+	category,
+	coalesce(color,'unknown') color -- tambien podemos utilizar el CASE WHEN color IS NULL -- THEN 'Unknown' --ELSE color -- END AS color
+from stg.product_master pm
+where upper(name) like '%PHILIPS%'
+or upper(name) like '%SAMSUNG%';
 -- 2. Calcular las ventas brutas y los impuestos pagados por pais y provincia en la moneda correspondiente.
 
 -- 3. Calcular las ventas totales por subcategoria de producto para cada moneda ordenados por subcategoria y moneda.
