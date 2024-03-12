@@ -196,7 +196,19 @@ from stg.product_master pm
 where upper(name) like '%PHILIPS%'
 or upper(name) like '%SAMSUNG%';
 -- 2. Calcular las ventas brutas y los impuestos pagados por pais y provincia en la moneda correspondiente.
-
+select 
+	country,
+	province,
+	round(sum(sale),2) Gross_sale,
+	round(sum(tax),2) Tax,
+	currency
+from stg.order_line_sale ols
+left join stg.store_master sm
+on ols.store = sm.store_id
+group by
+	country,
+	province,
+	currency;
 -- 3. Calcular las ventas totales por subcategoria de producto para cada moneda ordenados por subcategoria y moneda.
   
 -- 4. Calcular las unidades vendidas por subcategoria de producto y la concatenacion de pais, provincia; usar guion como separador y usarla para ordernar el resultado.
