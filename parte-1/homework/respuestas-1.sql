@@ -239,9 +239,30 @@ group by
 order by
 	Pais_Provincia;
 -- 5. Mostrar una vista donde sea vea el nombre de tienda y la cantidad de entradas de personas que hubo desde la fecha de apertura para el sistema "super_store".
-  
+select 
+	sm.name tienda,
+	sum(ssc.Traffic) entradas
+from stg.store_master sm
+inner join stg.super_store_count ssc
+on sm.store_id = ssc.store_id
+and sm.star_date <= cast(ssc.date as date)
+group by
+	tienda
+order by
+	tienda  
 -- 6. Cual es el nivel de inventario promedio en cada mes a nivel de codigo de producto y tienda; mostrar el resultado con el nombre de la tienda.
-  
+select 
+	sm.name Tienda,
+	i.item_id CodigoProducto,
+	to_char(i.date, 'mm') Mes,
+	round(avg((i.initial + i.final)/2),2) InventarioPromedio
+from stg.inventory i
+left join stg.store_master sm
+on i.store_id = sm.store_id
+group by
+	Tienda,
+	CodigoProducto,
+	Mes;  
 -- 7. Calcular la cantidad de unidades vendidas por material. Para los productos que no tengan material usar 'Unknown', homogeneizar los textos si es necesario.
   
 -- 8. Mostrar la tabla order_line_sales agregando una columna que represente el valor de venta bruta en cada linea convertido a dolares usando la tabla de tipo de cambio.
