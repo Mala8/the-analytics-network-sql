@@ -224,7 +224,20 @@ order by
 	subcategory,
 	currency;
 -- 4. Calcular las unidades vendidas por subcategoria de producto y la concatenacion de pais, provincia; usar guion como separador y usarla para ordernar el resultado.
-  
+select 
+	pm.subcategory,
+	concat(sm.country,'-',sm.province) Pais_Provincia,
+	sum(ols.quantity) Unidades_Vendidas
+from stg.order_line_sale ols
+left join stg.product_master pm
+on pm.product_code = ols.product
+left join stg.store_master sm
+on ols.Store = sm.store_id
+group by
+	pm.subcategory,
+	Pais_Provincia
+order by
+	Pais_Provincia;
 -- 5. Mostrar una vista donde sea vea el nombre de tienda y la cantidad de entradas de personas que hubo desde la fecha de apertura para el sistema "super_store".
   
 -- 6. Cual es el nivel de inventario promedio en cada mes a nivel de codigo de producto y tienda; mostrar el resultado con el nombre de la tienda.
