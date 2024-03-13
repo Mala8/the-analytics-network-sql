@@ -210,7 +210,19 @@ group by
 	province,
 	currency;
 -- 3. Calcular las ventas totales por subcategoria de producto para cada moneda ordenados por subcategoria y moneda.
-  
+select 
+	subcategory,
+	round(sum(sale),0) Sale,
+	currency
+from stg.order_line_sale ols
+left join stg.product_master pm
+on ols.product = pm.product_code
+group by 
+	subcategory,
+	currency
+order by
+	subcategory,
+	currency;
 -- 4. Calcular las unidades vendidas por subcategoria de producto y la concatenacion de pais, provincia; usar guion como separador y usarla para ordernar el resultado.
   
 -- 5. Mostrar una vista donde sea vea el nombre de tienda y la cantidad de entradas de personas que hubo desde la fecha de apertura para el sistema "super_store".
