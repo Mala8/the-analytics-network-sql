@@ -264,7 +264,18 @@ group by
 	CodigoProducto,
 	Mes;  
 -- 7. Calcular la cantidad de unidades vendidas por material. Para los productos que no tengan material usar 'Unknown', homogeneizar los textos si es necesario.
-  
+select 
+	case
+		when material is null then 'unknown'
+		when material = 'PLASTICO' then lower(material)
+		else material
+		end as material_nuevo,
+	sum(ols.quantity) as cantidad_vendida
+from stg.order_line_sale ols
+left join stg.product_master pm
+on ols.product = pm.product_code
+group by
+	material_nuevo
 -- 8. Mostrar la tabla order_line_sales agregando una columna que represente el valor de venta bruta en cada linea convertido a dolares usando la tabla de tipo de cambio.
   
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
