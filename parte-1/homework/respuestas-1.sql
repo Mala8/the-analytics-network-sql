@@ -277,7 +277,17 @@ on ols.product = pm.product_code
 group by
 	material_nuevo
 -- 8. Mostrar la tabla order_line_sales agregando una columna que represente el valor de venta bruta en cada linea convertido a dolares usando la tabla de tipo de cambio.
-  
+ select ols.*
+ ,case
+		when currency = 'ARS' then (coalesce(sale,0) /fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(sale,0) /fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(sale,0) /fx_rate_usd_uru)
+		else sale
+	end as VentasUSD
+from stg.order_line_sale ols
+left join stg.monthly_average_fx_rate fx
+on date_trunc('month',ols.date) = fx.month
+;
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
   
 -- 10. Mostrar en la tabla de ventas el margen de venta por cada linea. Siendo margen = (venta - descuento) - costo expresado en dolares.
