@@ -267,7 +267,7 @@ group by
 select 
 	case
 		when material is null then 'unknown'
-		when material = 'PLASTICO' then lower(material)
+		when material is not null then lower(material)
 		else material
 		end as material_nuevo,
 	sum(ols.quantity) as cantidad_vendida
@@ -275,10 +275,10 @@ from stg.order_line_sale ols
 left join stg.product_master pm
 on ols.product = pm.product_code
 group by
-	material_nuevo
+	material_nuevo;
 -- 8. Mostrar la tabla order_line_sales agregando una columna que represente el valor de venta bruta en cada linea convertido a dolares usando la tabla de tipo de cambio.
- select ols.*
- ,case
+ select ols.*,
+	 case
 		when currency = 'ARS' then (coalesce(sale,0) /fx_rate_usd_peso)
 		when currency = 'EUR' then (coalesce(sale,0) /fx_rate_usd_eur)
 		when currency = 'URU' then (coalesce(sale,0) /fx_rate_usd_uru)
@@ -286,10 +286,20 @@ group by
 	end as VentasUSD
 from stg.order_line_sale ols
 left join stg.monthly_average_fx_rate fx
-on date_trunc('month',ols.date) = fx.month
-;
+on date_trunc('month',ols.date) = fx.month;
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
-  
+-- Ver si está correcto
+select 
+	round(sum(sale),2) as Ventas_Totales_USD,
+	round(sum(case
+		when currency = 'ARS' then (sale / fx_rate_usd_peso)
+		when currency = 'EUR' then (sale / fx_rate_usd_eur)
+		when currency = 'URU' then (sale / fx_rate_usd_uru)
+		else sale 
+	end),2) as VentaUSD
+from stg.order_line_sale ols
+left join stg.monthly_average_fx_rate fx
+on date_trunc('month',ols.date) = fx.month;  
 -- 10. Mostrar en la tabla de ventas el margen de venta por cada linea. Siendo margen = (venta - descuento) - costo expresado en dolares.
   
 -- 11. Calcular la cantidad de items distintos de cada subsubcategoria que se llevan por numero de orden.
