@@ -288,18 +288,24 @@ from stg.order_line_sale ols
 left join stg.monthly_average_fx_rate fx
 on date_trunc('month',ols.date) = fx.month;
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
--- Ver si está correcto
-select 
-	round(sum(sale),2) as Ventas_Totales_USD,
-	round(sum(case
-		when currency = 'ARS' then (sale / fx_rate_usd_peso)
-		when currency = 'EUR' then (sale / fx_rate_usd_eur)
-		when currency = 'URU' then (sale / fx_rate_usd_uru)
-		else sale 
-	end),2) as VentaUSD
+with ventas_totales_en_dolares as (
+SELECT 
+	ols.order_number, 
+	ols.sale, 
+	ols.currency, 
+	cast(date_trunc('month',ols.date) as date) as date,
+  	CASE
+	  	WHEN currency = 'EUR' THEN sale/fx_rate_usd_eur
+	  	WHEN currency = 'ARS' THEN sale/fx_rate_usd_peso
+	 	 WHEN currency = 'URU' THEN sale/fx_rate_usd_URU
+	 	 ELSE sale
+	END AS Ventas_en_dolares
 from stg.order_line_sale ols
-left join stg.monthly_average_fx_rate fx
-on date_trunc('month',ols.date) = fx.month;  
+left join stg.monthly_average_fx_rate fx on fx.month=date
+)
+Select
+	SUM(Ventas_en_dolares) as ventas_totales_de_la_empresa_en_dolares
+from ventas_totales_en_dolares;
 -- 10. Mostrar en la tabla de ventas el margen de venta por cada linea. Siendo margen = (venta - descuento) - costo expresado en dolares.
   
 -- 11. Calcular la cantidad de items distintos de cada subsubcategoria que se llevan por numero de orden.
