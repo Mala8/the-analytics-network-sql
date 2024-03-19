@@ -288,28 +288,48 @@ from stg.order_line_sale ols
 left join stg.monthly_average_fx_rate fx
 on date_trunc('month',ols.date) = fx.month;
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
-with ventas_totales_en_dolares as (
-SELECT 
-	ols.order_number, 
-	ols.sale, 
-	ols.currency, 
-	cast(date_trunc('month',ols.date) as date) as date,
-  	CASE
-	  	WHEN currency = 'EUR' THEN sale/fx_rate_usd_eur
-	  	WHEN currency = 'ARS' THEN sale/fx_rate_usd_peso
-	 	 WHEN currency = 'URU' THEN sale/fx_rate_usd_URU
-	 	 ELSE sale
-	END AS Ventas_en_dolares
-from stg.order_line_sale ols
-left join stg.monthly_average_fx_rate fx on fx.month=date
+with ventas_usd as (
+select *,
+	case
+		when currency = 'ARS' then ols.sale/fx.fx_rate_usd_peso
+		when currency = 'EUR' then ols.sale/fx.fx_rate_usd_eur
+		when currency = 'URU' then ols.sale/fx.fx_rate_usd_uru
+		else ols.sale
+		end as ventas_usd
+from stg.order_line_sale ols 
+left join stg.monthly_average_fx_rate fx
+on ols.date = fx.month
 )
-Select
-	SUM(Ventas_en_dolares) as ventas_totales_de_la_empresa_en_dolares
-from ventas_totales_en_dolares;
--- 10. Mostrar en la tabla de ventas el margen de venta por cada linea. Siendo margen = (venta - descuento) - costo expresado en dolares.
-  
+
+select round(sum(ventas_usd),2) as Ventas_totales_us
+from ventas_usd;
+-- 10. Mostrar en la tabla de ventas el margen de venta por cada linea. Siendo margen = (venta - descuento) - costo expresado en dolares
+select ols.*,
+	case
+		when currency = 'ARS' 
+			then ((coalesce(ols.sale,0) - coalesce(ols.promotion,0))/fx.fx_rate_usd_peso) - coalesce(cs.product_cost_usd,0)
+		when currency = 'EUR' 
+			then ((coalesce(ols.sale,0) - coalesce(ols.promotion,0))/fx.fx_rate_usd_eur) - coalesce(cs.product_cost_usd,0)
+		when currency = 'URU' 
+			then ((coalesce(ols.sale,0) - coalesce(ols.promotion,0))/fx.fx_rate_usd_uru) - coalesce(cs.product_cost_usd,0)
+		else ols.sale-ols.promotion-cs.product_cost_usd
+		end as merge_usd
+from stg.order_line_sale ols
+left join stg.monthly_average_fx_rate fx
+on ols.date = fx.month
+left join stg.cost cs
+on ols.product = cs.product_code;
 -- 11. Calcular la cantidad de items distintos de cada subsubcategoria que se llevan por numero de orden.
-  
+select 
+	ols.order_number,
+	count(distinct ols.product) as Distinct_product,
+	pm.subcategory
+from stg.order_line_sale ols
+left join stg.product_master pm
+on ols.product = pm.product_code
+group by
+	ols.order_number,
+	pm.subcategory;  
 
 -- ## Semana 2 - Parte B
 
