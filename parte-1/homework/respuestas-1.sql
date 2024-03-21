@@ -332,15 +332,31 @@ group by
 	pm.subcategory;  
 
 -- ## Semana 2 - Parte B
-
 -- 1. Crear un backup de la tabla product_master. Utilizar un esquema llamada "bkp" y agregar un prefijo al nombre de la tabla con la fecha del backup en forma de numero entero.
-  
+create schema if not exists bkp;
+create table bkp.bkp_product_master_20230321 as
+select * from stg.product_master;
 -- 2. Hacer un update a la nueva tabla (creada en el punto anterior) de product_master agregando la leyendo "N/A" para los valores null de material y color. Pueden utilizarse dos sentencias.
-  
+Update bkp.bkp_product_master_20230321
+set color = 'N/A'
+where color is null;
+
+update bkp.bkp_product_master_20230321
+set material = 'N/A'
+where material is null;  
 -- 3. Hacer un update a la tabla del punto anterior, actualizando la columa "is_active", desactivando todos los productos en la subsubcategoria "Control Remoto".
-  
+update bkp.bkp_product_master_20230321
+set subcategory = 'is_active'
+where subcategory = 'Control Remoto';  
 -- 4. Agregar una nueva columna a la tabla anterior llamada "is_local" indicando los productos producidos en Argentina y fuera de Argentina.
-  
+alter table bkp.bkp_product_master_20230321 
+add is_local boolean;
+Update bkp.bkp_product_master_20230321 
+set is_local = True
+where origin = 'Argentina';
+Update bkp.bkp_product_master_20230321 
+set is_local = False
+where origin != 'Argentina';  
 -- 5. Agregar una nueva columna a la tabla de ventas llamada "line_key" que resulte ser la concatenacion de el numero de orden y el codigo de producto.
   
 -- 6. Crear una tabla llamada "employees" (por el momento vacia) que tenga un id (creado de forma incremental), name, surname, start_date, end_name, phone, country, province, store_id, position. Decidir cual es el tipo de dato mas acorde.
