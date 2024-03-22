@@ -358,16 +358,51 @@ Update bkp.bkp_product_master_20230321
 set is_local = False
 where origin != 'Argentina';  
 -- 5. Agregar una nueva columna a la tabla de ventas llamada "line_key" que resulte ser la concatenacion de el numero de orden y el codigo de producto.
-  
+alter table stg.order_line_sale
+add line_key character varying(255);
+update stg.order_line_sale
+set line_key = order_number ||'-'||product;
 -- 6. Crear una tabla llamada "employees" (por el momento vacia) que tenga un id (creado de forma incremental), name, surname, start_date, end_name, phone, country, province, store_id, position. Decidir cual es el tipo de dato mas acorde.
-  
+drop table if exists stg.employees;
+Create table stg.employees(
+	id serial primary key not null,
+	name varchar(255) not null,
+	surname varchar(255) not null,
+	start_date date not null,
+	end_date date,
+	phone character varying(255),
+	country varchar(255),
+	province varchar(255),
+	store_id smallint not null,
+	position varchar(255)
+);  
 -- 7. Insertar nuevos valores a la tabla "employees" para los siguientes 4 empleados:
     -- Juan Perez, 2022-01-01, telefono +541113869867, Argentina, Santa Fe, tienda 2, Vendedor.
     -- Catalina Garcia, 2022-03-01, Argentina, Buenos Aires, tienda 2, Representante Comercial
     -- Ana Valdez, desde 2020-02-21 hasta 2022-03-01, España, Madrid, tienda 8, Jefe Logistica
     -- Fernando Moralez, 2022-04-04, España, Valencia, tienda 9, Vendedor.
-
+insert into stg.employees
+	values 
+		(default,'Juan','Perez','2022-01-01',null,'+541113869867','Argentina','Santa Fe',2,'Vendedor'),
+		(default,'Catalina','Garcia','2022-03-01',null,null,'Argentina','Buenos Aires',2,'Representante Comercial'),
+		(default,'Ana','Valdez','2020-02-21','2022-03-01',null,'España','Madrid',8,'Jefe Logistica'),
+ 		(default,'Fernando','Moralez','2022-04-04',null,null,'España', 'Valencia',9,'Vendedor');
   
 -- 8. Crear un backup de la tabla "cost" agregandole una columna que se llame "last_updated_ts" que sea el momento exacto en el cual estemos realizando el backup en formato datetime.
-  
+create table bkp.bkp_cost as 
+select * from stg.cost;
+alter table bkp.bkp_cost
+add last_updated_ts timestamp;
+update bkp.bkp_cost
+set last_updated_ts = current_date;
+select *
+from bkp.bkp_cost;  
 -- 9. En caso de hacer un cambio que deba revertirse en la tabla order_line_sale y debemos volver la tabla a su estado original, como lo harias? Responder con palabras que sentencia utilizarias. (no hace falta usar codigo)
+/*Realizar copia de seguriad de la tabla (BackUp)
+create schema if not exists bkp;
+create table bkp.bkp_order_line_sale as
+select * from stg.order_line_sale;
+drop tamble if exists stg.order_line_sale;
+create table stg.order_line sale as
+select *
+from bkp.bkp_order_line_sale*/
