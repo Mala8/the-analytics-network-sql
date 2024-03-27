@@ -1,6 +1,6 @@
 
 -- General
-CTE Gral
+--CTE  ventas General
 with stg_sales as (
 select
 	ols.*,
