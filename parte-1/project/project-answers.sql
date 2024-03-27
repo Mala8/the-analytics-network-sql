@@ -47,7 +47,7 @@ select
 	extract(month from ols.date) as Month,
 	sum(sales_usd) as sales_usd,
 	sum(sales_usd-promotion_usd) as net_sales_usd,
-  sum(sales_usd-promotion_usd-total_cost) as margin_usd
+  sum(sales_usd-promotion_usd-tax_usd-total_cost) as margin_usd
 from stg_sales ols
 group by
 	Year,
