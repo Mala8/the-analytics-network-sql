@@ -4,6 +4,8 @@
 with stg_sales as (
 select
 	ols.*,
+	(cs.product_cost_usd*ols.quantity) as total_cost,
+	pm.Category,
 	case
 		when currency = 'ARS' then (coalesce(sale,0)/fx_rate_usd_peso)
 		when currency = 'EUR' then (coalesce(sale,0)/fx_rate_usd_eur)
@@ -55,9 +57,20 @@ group by
 order by
 	Year,
 	Month;
-
 -- - Margen por categoria de producto (USD)
-
+select 
+	extract(year from ols.date) as Year,
+	extract(month from ols.date) as Month,
+	category,
+  sum(sales_usd-promotion_usd-tax_usd-total_cost) as margin_usd
+from stg_sales ols
+group by
+	Year,
+	Month,
+	category
+order by
+	Year,
+	Month;
 -- - ROI por categoria de producto. ROI = ventas netas / Valor promedio de inventario (USD)
 
 -- - AOV (Average order value), valor promedio de la orden. (USD)
