@@ -72,6 +72,22 @@ order by
 	Year,
 	Month;
 -- - ROI por categoria de producto. ROI = ventas netas / Valor promedio de inventario (USD)
+/* select 
+	--cast(date_trunc('month',i.date) as date) as date,
+	to_char(i.date,'YYYY-MM') as mes_año,
+	category,
+	avg((initial+final)*1.00/2) as inv_prom,
+	avg(((initial+final)*1.00/2)*product_cost_usd) as inv_prom_cost
+from stg.inventory i
+left join stg.cost cs
+on i.item_id = cs.product_code
+left join stg.product_master pm
+on i.item_id = pm.product_code
+group by
+	mes_año,
+	category
+order by
+	mes_año*/
 
 -- - AOV (Average order value), valor promedio de la orden. (USD)
 
