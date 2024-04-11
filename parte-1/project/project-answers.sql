@@ -133,7 +133,54 @@ group by
 	ROI;
 
 -- - AOV (Average order value), valor promedio de la orden. (USD)
+with stg_sales as (
+select
+	date,
+	order_number,
+	case
+		when currency = 'ARS' then (coalesce(sale,0)/fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(sale,0)/fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(sale,0)/fx_rate_usd_uru)
+		else sale
+	end as sales_usd,
+	case
+		when currency = 'ARS' then (coalesce(promotion,0)/fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(promotion,0)/fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(promotion,0)/fx_rate_usd_uru)
+		else promotion
+	end as promotion_usd,
+	case
+		when currency = 'ARS' then (coalesce(credit,0)/fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(credit,0)/fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(credit,0)/fx_rate_usd_uru)
+		else credit
+	end as credit_usd,
+	case
+		when currency = 'ARS' then (coalesce(tax,0)/fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(tax,0)/fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(tax,0)/fx_rate_usd_uru)
+		else tax
+	end as tax_usd
+from stg.order_line_sale ols
+left join stg.monthly_average_fx_rate fx
+on date_trunc('month',ols.date) = fx.month
+left join stg.store_master sm
+on ols.store = sm.store_id
+left join stg.product_master pm
+on ols.product = pm.product_code
+left join stg.cost cs
+on ols.product = cs.product_code
+left join stg.supplier sp
+on ols.product = sp.product_id
+where sp.is_primary = true
+)
 
+select 
+	to_char(s.date,'YYYY-MM') as year_month,
+	sum(sales_usd) / count(distinct(order_number)) as AOV
+from stg_sales s
+group by
+	year_month;
 -- Contabilidad (USD)
 -- - Impuestos pagados
 
