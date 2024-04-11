@@ -170,6 +170,7 @@ left join stg.product_master pm
 on ols.product = pm.product_code
 left join stg.cost cs
 on ols.product = cs.product_code
+	--where order_number = 'M202201011001'
 left join stg.supplier sp
 on ols.product = sp.product_id
 where sp.is_primary = true
@@ -177,10 +178,14 @@ where sp.is_primary = true
 
 select 
 	to_char(s.date,'YYYY-MM') as year_month,
-	sum(sales_usd) / count(distinct(order_number)) as AOV
+	(sum(sales_usd)/count(distinct(order_number))) as AOV
 from stg_sales s
 group by
-	year_month;
+	year_month,
+	order_number
+order by 
+	year_month,
+	order_number;
 -- Contabilidad (USD)
 -- - Impuestos pagados
 
