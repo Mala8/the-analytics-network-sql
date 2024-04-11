@@ -72,22 +72,65 @@ order by
 	Year,
 	Month;
 -- - ROI por categoria de producto. ROI = ventas netas / Valor promedio de inventario (USD)
-/* select 
-	--cast(date_trunc('month',i.date) as date) as date,
-	to_char(i.date,'YYYY-MM') as mes_año,
+with stg_sales as (
+select
+	to_char(date,'YYYY-MM') as year_date,
 	category,
-	avg((initial+final)*1.00/2) as inv_prom,
-	avg(((initial+final)*1.00/2)*product_cost_usd) as inv_prom_cost
+	sum(case
+		when currency = 'ARS' then (coalesce(sale,0)/fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(sale,0)/fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(sale,0)/fx_rate_usd_uru)
+		else sale
+	end) as sales_usd,
+	sum(case
+		when currency = 'ARS' then (coalesce(promotion,0)/fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(promotion,0)/fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(promotion,0)/fx_rate_usd_uru)
+		else promotion
+	end) as promotion_usd
+from stg.order_line_sale ols
+left join stg.monthly_average_fx_rate fx
+on date_trunc('month',ols.date) = fx.month
+left join stg.store_master sm
+on ols.store = sm.store_id
+left join stg.product_master pm
+on ols.product = pm.product_code
+left join stg.cost cs
+on ols.product = cs.product_code
+group by
+	year_date,
+	category
+)
+, stg_inv_prom as (
+select
+	to_char(date,'YYYY-MM') as year_date,
+	category,
+	sum((initial+final)*1.00/2) as inv_prom,
+	sum(((initial+final)*1.00/2)*product_cost_usd) as inv_prom_cost
 from stg.inventory i
 left join stg.cost cs
 on i.item_id = cs.product_code
 left join stg.product_master pm
 on i.item_id = pm.product_code
 group by
-	mes_año,
+	year_date,
 	category
 order by
-	mes_año*/
+	year_date,
+	category
+)
+select
+	s.year_date,
+	s.category,
+	((s.sales_usd-s.promotion_usd)/ ip.inv_prom_cost ) as ROI
+from stg_sales s
+left join stg_inv_prom ip
+on s.year_date = ip.year_date
+and s.category = ip.category
+group by
+	s.year_date,
+	s.category,
+	ROI;
 
 -- - AOV (Average order value), valor promedio de la orden. (USD)
 
