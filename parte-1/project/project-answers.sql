@@ -205,9 +205,6 @@ left join stg.supplier sp
 on i.item_id = sp.product_id
 where sp.is_primary = True
 )
-
-
--- Costo de inventario promedio por tienda
 Select
 	to_char(date,'YYYY-MM') year_month,
 	store_id,
