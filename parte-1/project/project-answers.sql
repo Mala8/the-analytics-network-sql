@@ -185,7 +185,43 @@ order by
 	order_number;
 -- Supply Chain (USD)
 -- - Costo de inventario promedio por tienda
+with stg_inv as (
+select
+	i.date,
+	i.store_id,
+	sm.name,
+	i.item_id,
+	i.initial,
+	i.final,
+	cs.product_cost_usd
+from stg.inventory i
+left join stg.store_master sm
+on i.store_id = sm.store_id
+left join stg.cost cs
+on i.item_id = cs.product_code
+left join stg.product_master pm
+on i.item_id  = pm.product_code
+left join stg.supplier sp
+on i.item_id = sp.product_id
+where sp.is_primary = True
+)
 
+
+-- Costo de inventario promedio por tienda
+Select
+	to_char(date,'YYYY-MM') year_month,
+	store_id,
+	name,
+	sum(((inv.initial+inv.final)*1.00/2)*product_cost_usd) as inventory_cost_usd
+from stg_inv inv
+group by
+	year_month,
+	store_id,
+	name
+order by
+	year_month,
+	store_id,
+	name;
 -- - Costo del stock de productos que no se vendieron por tienda
 
 -- - Cantidad y costo de devoluciones
