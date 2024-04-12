@@ -172,7 +172,17 @@ group by
 order by 
 	year_month;
 -- - Valor pagado final por order de linea. Valor pagado: Venta - descuento + impuesto - credito
-
+select 
+	to_char(s.date,'YYYY-MM') as year_month,
+	order_number,
+	sum(sales_usd-promotion_usd+tax_usd-credit_usd) as amount_paid_usd
+from stg_sales s
+group by
+	year_month,
+	order_number
+order by 
+	year_month,
+	order_number;
 -- Supply Chain (USD)
 -- - Costo de inventario promedio por tienda
 
