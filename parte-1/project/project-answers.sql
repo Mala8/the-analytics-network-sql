@@ -261,7 +261,37 @@ order by
 	store_id,
 	name;
 -- - Costo del stock de productos que no se vendieron por tienda
-
+With stg_product_sale as (
+SELECT 
+	to_char(i.date,'YYYY-MM') as year_month,
+	store_id, 
+	item_id,
+    sum(quantity) as quantity_sale
+FROM stg.inventory i
+left join stg.order_line_sale ols
+on ols.product = i.item_id
+and ols.store = i.store_id
+and ols.date = i.date
+--where item_id = 'p200099'
+group by 
+	year_month,
+	store_id, 
+	item_id
+having 
+	sum(quantity) is null
+)
+	
+	SELECT
+		year_month,
+		i.store_id, 
+		i.item_id,
+		((initial+final)/2)*product_cost_usd as inv_prom_cost
+	FROM stg.inventory i
+	inner join stg_product_sale ps
+	on ps.item_id = i.item_id
+	and ps.store_id = i.store_id
+	left join stg.cost c 
+	on i.item_id = c.product_code;
 -- - Cantidad y costo de devoluciones
 
 
