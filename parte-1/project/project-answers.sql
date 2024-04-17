@@ -293,7 +293,25 @@ having
 	left join stg.cost c 
 	on i.item_id = c.product_code;
 -- - Cantidad y costo de devoluciones
-
+with stg_return as (
+select 
+	to_char(date,'yyyy-mm') as year_month,
+	item,
+	sum(rm.quantity) as quantity
+from stg.return_movements rm
+group by
+	year_month,
+	item
+)
+select 
+	year_month,
+	r.quantity,
+	(r.quantity * cs.product_cost_usd) as returned_sales_usd
+from stg_return r
+left join  stg.cost cs
+on r.item = cs.product_code
+order by
+	year_month;
 
 -- Tiendas
 -- - Ratio de conversion. Cantidad de ordenes generadas / Cantidad de gente que entra
