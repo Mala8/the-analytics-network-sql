@@ -317,10 +317,9 @@ order by
 -- - Ratio de conversion. Cantidad de ordenes generadas / Cantidad de gente que entra
 with stg_sales as (
 select
-	ols.date,
-	ols.store,
+	date,
+	store,
 	count(distinct order_number) as orders
-	--order_number
 from stg.order_line_sale ols
 left join stg.monthly_average_fx_rate fx
 on date_trunc('month',ols.date) = fx.month
@@ -335,34 +334,32 @@ on ols.product = sp.product_id
 where sp.is_primary = true
 group by
 	ols.date,
-	ols.store
+	store
 )
 , stg_traffic as (
 select
 	store_id,
-	TO_DATE(CAST(date AS VARCHAR), 'YYYYMMDD') date,
+	TO_DATE(CAST(mc.date AS VARCHAR), 'YYYYMMDD') date,
 	traffic
-from stg.market_count 
+from stg.market_count mc
 union all
 select
 	store_id,
-	TO_DATE(date, 'YYYY-MM-DD') date,
+	TO_DATE(ssc.date, 'YYYY-MM-DD') date,
 	traffic
-from stg.super_store_count
+from stg.super_store_count ssc
 order by
 	store_id,
 	date
 )
 
 select 
-	to_char(s.date, 'YYYY-MM') as year_month,
-	tr.store_id,
-	(s.orders / sum(tr.traffic*1.00)) as cvr
+	cast(date_trunc('month', s.date)as date)as month_,
+	sum(s.orders*1.00) / sum(tr.traffic*1.00) as cvr
 from stg_sales s
 left join stg_traffic tr
 on s.date = tr.date
 and s.store = tr.store_id
 group by
-	year_month,
-	tr.store_id,
+	month_,
 	s.orders;
