@@ -20,7 +20,33 @@ order by
 	store_id
 );
 -- 2. Recibimos otro archivo con ingresos a tiendas de meses anteriores. Subir el archivo a stg.super_store_count_aug y agregarlo a la vista del ejercicio anterior. Cual hubiese sido la diferencia si hubiesemos tenido una tabla? (contestar la ultima pregunta con un texto escrito en forma de comentario)
-
+create table if not exists stg.super_store_count_aug(
+	store_id smallint,
+	date character varying(10),
+	traffic smallint);
+	
+create or replace view stg.vw_store_traffic as (
+select
+	mc.store_id,
+	TO_DATE(CAST(mc.date AS VARCHAR), 'YYYYMMDD') date,
+	mc.traffic
+from stg.market_count mc
+union all
+select
+	ssc.store_id,
+	TO_DATE(ssc.date, 'YYYY-MM-DD') date,
+	ssc.traffic
+from stg.super_store_count ssc
+union all
+select 
+	ssca.store_id,
+	to_date(ssca.date, 'YYYY-MM-DD') date,
+	ssca.traffic
+from stg.super_store_count_aug ssca
+order by
+	date,
+	store_id
+);
 -- 3. Crear una vista con el resultado del ejercicio del ejercicio de la Parte 1 donde calculamos el margen bruto en dolares. Agregarle la columna de ventas, promociones, creditos, impuestos y el costo en dolares para poder reutilizarla en un futuro. Responder con el codigo de creacion de la vista.
 -- El nombre de la vista es stg.vw_order_line_sale_usd
 -- Los nombres de las nuevas columnas son sale_usd, promotion_usd, credit_usd, tax_usd, y line_cost_usd
