@@ -3,7 +3,22 @@
 -- 1.Crear una vista con el resultado del ejercicio donde unimos la cantidad de gente que ingresa a tienda usando los dos sistemas.(tablas market_count y super_store_count)
 -- . Nombrar a la lista `stg.vw_store_traffic`
 -- . Las columnas son `store_id`, `date`, `traffic`
-
+create or replace view stg.vw_store_traffic as (
+select
+	mc.store_id,
+	TO_DATE(CAST(mc.date AS VARCHAR), 'YYYYMMDD') date,
+	mc.traffic
+from stg.market_count mc
+union all
+select
+	ssc.store_id,
+	TO_DATE(ssc.date, 'YYYY-MM-DD') date,
+	ssc.traffic
+from stg.super_store_count ssc
+order by
+	date,
+	store_id
+);
 -- 2. Recibimos otro archivo con ingresos a tiendas de meses anteriores. Subir el archivo a stg.super_store_count_aug y agregarlo a la vista del ejercicio anterior. Cual hubiese sido la diferencia si hubiesemos tenido una tabla? (contestar la ultima pregunta con un texto escrito en forma de comentario)
 
 -- 3. Crear una vista con el resultado del ejercicio del ejercicio de la Parte 1 donde calculamos el margen bruto en dolares. Agregarle la columna de ventas, promociones, creditos, impuestos y el costo en dolares para poder reutilizarla en un futuro. Responder con el codigo de creacion de la vista.
