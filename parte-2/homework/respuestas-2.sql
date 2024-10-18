@@ -98,7 +98,34 @@ where sp.is_primary = true
 select * from stg_sales_usd
 );
 -- 4. Generar una query que me sirva para verificar que el nivel de agregacion de la tabla de ventas (y de la vista) no se haya afectado. Recordas que es el nivel de agregacion/detalle? Lo vimos en la teoria de la parte 1! Nota: La orden M202307319089 parece tener un problema verdad? Lo vamos a solucionar mas adelante.
+-- Verificación del nivel de agregación, busqueda de duplicados.
+select 
+	order_number,
+	product,
+	count(order_number)
+from stg.vw_order_line_sale_usd
+group by
+	order_number,
+	product
+HAVING
+	count(order_number) >1;
 
+-- Verificar duplicado con windows function row_number
+with rn_duplicados as (
+select 
+	order_number,
+	product,
+	row_number() over(partition by order_number,product order by product) as rn
+from stg.vw_order_line_sale_usd
+)
+select *
+from rn_duplicados
+where rn > 1;
+	
+--Orden duplicada
+select *
+from stg.vw_order_line_sale_usd
+where order_number = 'M202307319089';
 -- 5. Calcular el margen bruto a nivel Subcategoria de producto. Usar la vista creada stg.vw_order_line_sale_usd. La columna de margen se llama margin_usd
 
 -- 6. Calcular la contribucion de las ventas brutas de cada producto al total de la orden.
