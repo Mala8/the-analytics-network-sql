@@ -127,6 +127,19 @@ select *
 from stg.vw_order_line_sale_usd
 where order_number = 'M202307319089';
 -- 5. Calcular el margen bruto a nivel Subcategoria de producto. Usar la vista creada stg.vw_order_line_sale_usd. La columna de margen se llama margin_usd
+with margin_usd as(
+select ols.*,
+	pm.subcategory,
+	sales_usd - promotion_usd- line_cost_usd as margin_usd
+from stg.vw_order_line_sale_usd ols
+left join stg.product_master pm
+on ols.product = pm.product_code
+)
+
+select 
+	subcategory,
+	margin_usd
+from margin_usd;
 
 -- 6. Calcular la contribucion de las ventas brutas de cada producto al total de la orden.
 
