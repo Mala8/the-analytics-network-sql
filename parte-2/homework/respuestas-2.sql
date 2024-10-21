@@ -142,9 +142,18 @@ select
 from margin_usd;
 
 -- 6. Calcular la contribucion de las ventas brutas de cada producto al total de la orden.
+with cte as(
+select ols.*,
+	sum(sales_usd) over(partition by order_number order by order_number) as sales_line
+from stg.vw_order_line_sale_usd ols
+)
 
--- 7. Calcular las ventas por proveedor, para eso cargar la tabla de proveedores por producto. Agregar el nombre el proveedor en la vista del punto stg.vw_order_line_sale_usd. El nombre de la nueva tabla es stg.suppliers
-
+select 
+	cte.order_number,
+	cte.product,
+	sales_usd / sales_line as sales_contribution
+FROM cte;
+-- 7. 
 -- 8. Verificar que el nivel de detalle de la vista stg.vw_order_line_sale_usd no se haya modificado, en caso contrario que se deberia ajustar? Que decision tomarias para que no se genereren duplicados?
     -- - Se pide correr la query de validacion.
     -- - Modificar la query de creacion de stg.vw_order_line_sale_usd  para que no genere duplicacion de las filas. 
