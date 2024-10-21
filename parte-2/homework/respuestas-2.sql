@@ -155,6 +155,60 @@ select
 FROM cte;
 -- 7. -- Calcular las ventas por proveedor, para eso cargar la tabla de proveedores por producto. Agregar el nombre el proveedor en la vista del punto stg.vw_order_line_sale_usd. El nombre de la nueva tabla es stg.suppliers
 
+-- creando la tabla
+create table if not exists (
+product_id character varying (10),
+name character varying (255),
+is_primary boolean);
+-- Reemplazando la vista y agregando el nombre del proveedor
+create or replace view stg.vw_order_line_sale_usd as (
+	
+with stg_sales_usd as (
+	
+SELECT 
+	ols.*,
+	case -- Convierte sales por el rate de la fecha s/ moneda
+		when currency = 'ARS' then (coalesce(sale,0)/fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(sale,0)/fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(sale,0)/fx_rate_usd_uru)
+		else sale
+	end as sales_usd,
+	case -- convierte promotion por el rate de la fecha s/ moneda
+		when currency = 'ARS' then (coalesce(promotion,0)/fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(promotion,0)/fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(promotion,0)/fx_rate_usd_uru)
+		else promotion
+	end as promotion_usd,
+	case-- convierte credit por el rate de la fecha s/ moneda
+		when currency = 'ARS' then (coalesce(credit,0)/fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(credit,0)/fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(credit,0)/fx_rate_usd_uru)
+		else credit
+	end as credit_usd,
+	case -- convierte Tax por el rate de la fecha s/ moneda
+		when currency = 'ARS' then (coalesce(tax,0)/fx_rate_usd_peso)
+		when currency = 'EUR' then (coalesce(tax,0)/fx_rate_usd_eur)
+		when currency = 'URU' then (coalesce(tax,0)/fx_rate_usd_uru)
+		else tax
+	end as tax_usd,
+	(cs.product_cost_usd * ols.quantity) as line_cost_usd,-- calcula el costo en usd por linea
+	sp.name
+FROM stg.order_line_sale ols	
+left join stg.monthly_average_fx_rate fx
+on date_trunc('month',ols.date) = fx.month 
+left join stg.cost cs 
+on ols.product = cs.product_code
+left join stg.store_master sm 
+on ols.store = sm.store_id
+left join stg.product_master pm
+on ols.product = pm.product_code
+left join stg.supplier sp
+on ols.product = sp.product_id
+where sp.is_primary = true
+)
+
+select * from stg_sales_usd
+);
 -- 8. Verificar que el nivel de detalle de la vista stg.vw_order_line_sale_usd no se haya modificado, en caso contrario que se deberia ajustar? Que decision tomarias para que no se genereren duplicados?
     -- - Se pide correr la query de validacion.
     -- - Modificar la query de creacion de stg.vw_order_line_sale_usd  para que no genere duplicacion de las filas. 
