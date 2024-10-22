@@ -214,6 +214,24 @@ select * from stg_sales_usd
     -- - Modificar la query de creacion de stg.vw_order_line_sale_usd  para que no genere duplicacion de las filas. 
     -- - Explicar brevemente (con palabras escrito tipo comentario) que es lo que sucedia.
 
+-- Query validación de duplicados
+select 
+	order_number,
+	product,
+	store,
+	date,
+	count(order_number)
+from stg.vw_order_line_sale_usd
+group by
+	order_number,
+	product,
+	store,
+	date
+having
+	count(order_number) >1
+-- Se encuenta la orden "M202307319089" que ya estaba duplicada.
+-- Para que no se dupliquen se debe colocar la clausula where para los proveedores primarios, de esa forma se tiene los mismos registros que la OLS.
+-- Ya que un producto puede tener mas de un proveedor y eso generaría duplicados.
 
 
 -- ## Semana 3 - Parte B
