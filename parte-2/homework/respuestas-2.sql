@@ -237,7 +237,18 @@ having
 -- ## Semana 3 - Parte B
 
 -- 1. Calcular el porcentaje de valores null de la tabla stg.order_line_sale para la columna creditos y descuentos. (porcentaje de nulls en cada columna)
-
+with count_null as(
+select
+	sum(case when promotion is null then 1 else 0 end) as promotion_null, -- No tiene en cuenta los null
+	sum(case when promotion is not null then 1 else 1 end) as promotion_total, -- Tiene en cuenta los null
+	sum(case when credit is null then 1 else 0 end) as credit_null,
+	sum(case when credit is not null then 1 else 1 end) as credit_total
+from stg.order_line_sale ols
+)
+select 
+	((promotion_null)*1.0 / (promotion_total)*1.0)*100 as per_promotion_null,
+	((credit_null)*1.0 / (credit_total)*1.0)*100 as per_credit_null
+from count_null;
 -- 2. La columna is_walkout se refiere a los clientes que llegaron a la tienda y se fueron con el producto en la mano (es decia habia stock disponible). Responder en una misma query:
    --  - Cuantas ordenes fueron walkout por tienda?
    --  - Cuantas ventas brutas en USD fueron walkout por tienda?
