@@ -277,26 +277,49 @@ order by
 -- Identificar los duplicados.
 -- Eliminar las filas duplicadas. Podes usar BEGIN transaction y luego rollback o commit para verificar que se haya hecho correctamente.
 
--- identificar duplicados con windows function
-with rn_duplicados as(
+select  -- identifica los duplicados
+	order_number,
+	product,
+	date,
+	store,
+	row_number() over(partition by order_number,product,date, store order by order_number) as rn
+from stg.order_line_sale
+)
+select 
+	order_number,
+	product,
+	date,
+	store
+from cte_duplicados
+where rn > 1;
+
+begin transaction; -- Para iniciar los cambios en la tabla
+
+with cte_duplicados as( -- identifica los duplicados
 select 
 	order_number,
 	product,
 	date,
 	store,
-	quantity,
-	row_number() over(partition by order_number,product order by order_number) as rn
-from stg.vw_order_line_sale_usd
+	row_number() over(partition by order_number,product,date, store order by order_number) as rn
+from stg.order_line_sale
 )
 
+delete from stg.order_line_sale -- elimina los duplicados
+where (order_number, product, date, store)
+in (
 select 
 	order_number,
 	product,
 	date,
-	store,
-	quantity
-from rn_duplicados
+	store
+from cte_duplicados
 where rn > 1
+);
+
+rollback; -- vuelve atras los cambios si hay error o no es correcto
+
+commit; -- confirma los cambios
 -- 4. Obtener las ventas totales en USD de productos que NO sean de la categoria TV NI esten en tiendas de Argentina. Modificar la vista stg.vw_order_line_sale_usd con todas las columnas necesarias. 
 
 -- 5. El gerente de ventas quiere ver el total de unidades vendidas por dia junto con otra columna con la cantidad de unidades vendidas una semana atras y la diferencia entre ambos.Diferencia entre las ventas mas recientes y las mas antiguas para tratar de entender un crecimiento.
