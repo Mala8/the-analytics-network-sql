@@ -257,9 +257,8 @@ with walkout as(
 select 
 	store,
 	sum(case when is_walkout = true then 1 else 0 end) as sum_walkout,
-	sum(case when is_walkout =true then sales_usd else 0 end) walkout_sales_usd,
-	sum(sales_usd) as gross_sales_by_store
-	--sum(sales_usd) over(partition by store order by store) as sales_store
+	sum(case when is_walkout =true then sale_usd else 0 end) walkout_sales_usd,
+	sum(sale_usd) as gross_sales_by_store
 from stg.vw_order_line_sale_usd s
 group by 
 	store
@@ -267,8 +266,9 @@ group by
 
 select 
 	store,
-	--((gross_sales_by_store - walkout_sales_usd)/ walkout_sales_usd)*1.0,
-	(walkout_sales_usd / gross_sales_by_store)*1.0
+	sum_walkout,
+	walkout_sales_usd,
+	(walkout_sales_usd / gross_sales_by_store)*1.0 as perc_gross_by_store
 from walkout
 order by
 	store;
