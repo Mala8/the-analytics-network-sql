@@ -321,7 +321,15 @@ rollback; -- vuelve atras los cambios si hay error o no es correcto
 
 commit; -- confirma los cambios
 -- 4. Obtener las ventas totales en USD de productos que NO sean de la categoria TV NI esten en tiendas de Argentina. Modificar la vista stg.vw_order_line_sale_usd con todas las columnas necesarias. 
-
+select 
+	product,
+	sum(sales_usd)
+from stg.vw_order_line_sale_usd
+where country != 'Argentina' and subcategory != 'TV'
+group by
+	product
+order by
+	product;
 -- 5. El gerente de ventas quiere ver el total de unidades vendidas por dia junto con otra columna con la cantidad de unidades vendidas una semana atras y la diferencia entre ambos.Diferencia entre las ventas mas recientes y las mas antiguas para tratar de entender un crecimiento.
 
 -- 6. Crear una vista de inventario con la cantidad de inventario promedio por dia, tienda y producto, que ademas va a contar con los siguientes datos:
