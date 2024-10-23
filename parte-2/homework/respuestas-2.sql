@@ -369,7 +369,80 @@ from day_sale_week;
     - El nivel de agregacion es dia/tienda/sku.
     - El Promedio diario Unidades vendidas ultimos 7 dias tiene que calcularse para cada dia.
 */
-        
+create or replace view stg.vw_inventory as (
+
+with stg_last_snapshot as ( -- calcula la última fecha de la tabla inventario
+select 
+	max(date) as date
+from stg.inventory i
+)
+
+, stg_sales as ( -- calcula la cantidad de vendida de la tabla ventas
+select
+	date,
+	store,
+	product,
+	sum(quantity) as quantity
+from stg.order_line_sale s	
+group by
+	date,
+	store,
+	product
+)
+	
+,stg_inventory as ( -- tabla inventario con agregaciones
+Select 
+	i.date,
+	pm.product_code,
+	sm.store_id,
+	pm.name as product_name,
+	pm.category, 
+	pm.subcategory,
+	pm.subsubcategory,
+	sm.country,
+	sm.name as store_name,
+	cs.product_cost_usd,
+	i.final * cs.product_cost_usd as inventory_cost,
+	i.initial,
+	i.final,
+	quantity,
+	(i.initial + i.final)/2 as avg_inventory,
+	case when ls.date is null then False else true end as is_last_snapshot,
+	avg(quantity) over(partition by sm.store_id, pm.product_code order by i.date rows between 7 preceding and current row) as sales_last_7_days -- calcula el promedio de ventas de los ultimos 7 días particionado por tienda y producto
+from stg.inventory i
+left join stg.store_master sm 
+on i.store_id = sm.store_id
+left join stg.product_master pm
+on i.item_id = pm.product_code
+left join stg.cost cs
+on i.item_id = cs.product_code
+left join stg_last_snapshot ls
+on i.date = ls.date
+left join stg_sales s
+on i.date = s.date
+and i.store_id = s.store
+and i.item_id = s.product
+)
+
+select 
+	--date,
+	--product_code,
+	--store_id,
+	product_name,
+	category, 
+	subcategory,
+	subsubcategory,
+	country,
+	store_name,
+	product_cost_usd,
+	inventory_cost,
+	quantity,
+	avg_inventory,
+	is_last_snapshot,
+	sales_last_7_days,
+	(avg_inventory / sales_last_7_days) as days_on_hand
+from stg_inventory
+	); 
 
 -- ## Semana 4 - Parte A
 
