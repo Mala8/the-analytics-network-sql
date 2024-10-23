@@ -331,7 +331,31 @@ group by
 order by
 	product;
 -- 5. El gerente de ventas quiere ver el total de unidades vendidas por dia junto con otra columna con la cantidad de unidades vendidas una semana atras y la diferencia entre ambos.Diferencia entre las ventas mas recientes y las mas antiguas para tratar de entender un crecimiento.
+with day_sale_week as(
+select 
+	s2.date as day_sale,
+	sum(s2.quantity) as qty_day_sale,
+	s1.date as prev_week,
+	sum(s1.quantity) as qty_prev_week
+from stg.vw_order_line_sale_usd s1
+inner join stg.vw_order_line_sale_usd s2
+on s1.product = s2.product
+and s1.store = s2.store
+and s1.date = s2.date - interval '1 week'
+group by
+	prev_week,
+	day_sale
+order by
+	prev_week
+)
 
+select 
+	day_sale,
+	qty_day_sale,
+	prev_week,
+	qty_prev_week,
+	qty_day_sale - qty_prev_week as diff_qty
+from day_sale_week;
 -- 6. Crear una vista de inventario con la cantidad de inventario promedio por dia, tienda y producto, que ademas va a contar con los siguientes datos:
 /* - Nombre y categorias de producto: `product_name`, `category`, `subcategory`, `subsubcategory`
 - Pais y nombre de tienda: `country`, `store_name`
