@@ -497,6 +497,31 @@ from cte2
 order by
 	cumulative_contribution_percentage asc;
 -- 3. Calcular el crecimiento de ventas por tienda mes a mes, con el valor nominal y el valor % de crecimiento.
+with sales_month as(
+select 
+	cast(date_trunc('month',s.date) as date) as mes,
+	sum(quantity) as qty_sold,
+	sum(sale) as sale
+from stg.vw_order_line_sale_usd s
+left join stg.store_master sm 
+on s.store = sm.store_id
+group by
+	cast(date_trunc('month',s.date) as date)
+)
+select 
+	m1.mes,
+	m1.qty_sold as previus_month_qty_sold,
+	m1.sale as previus_month_sales,
+	m2.mes,
+	m2.qty_sold as next_month_sold,
+	m2.sale as next_month_sales,
+	m2.qty_sold - m1.qty_sold as diff_qty_by_month, -- Diferencia cantidades vendidas mensuales
+	(m2.qty_sold - m1.qty_sold)*1.0 / m1.qty_sold*1.0 as growth_qty,-- Crecimiento mensual
+	m2.sale - m1.sale as diff_sale_by_month, -- Diferencia monto vendidas mensuales
+	(m2.sale - m1.sale)*1.0 / m1.sale*1.0 as growth_sale-- Crecimiento monto mensual
+from sales_month m1
+inner join sales_month m2 -- Self Join 
+on m1.mes = m2.mes - interval '1 month'; -- Se comprar con un mes anterior para sacar la métrica;
 
 -- 4. Crear una vista a partir de la tabla return_movements que este a nivel Orden de venta, item y que contenga las siguientes columnas:
 /* - Orden `order_number`
