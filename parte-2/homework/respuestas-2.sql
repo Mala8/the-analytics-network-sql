@@ -533,7 +533,43 @@ on m1.mes = m2.mes - interval '1 month'; -- Se comprar con un mes anterior para 
 - `first_location` (primer lugar registrado, de la columna `from_location`, para la orden/producto)
 - `last_location` (el ultimo lugar donde se registro, de la columna `to_location` el producto/orden)
 - El nombre de la vista es `stg.vw_returns`*/
+drop view if exists stg.vw_returns;
 
+create or replace view stg.vw_returns as
+
+with stg_mov as (
+select *,
+	first_value(from_location) over(partition by return_id order by movement_id) as first_location,
+	last_value(to_location) over(partition by return_id order by movement_id rows between UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_location
+from stg.return_movements r
+)
+
+select 
+	r.order_id as orden,
+	r.item as SKU,
+	avg(r.quantity) as quantity,
+	r.date,
+	avg(r.quantity*s.sale) as sale_returned_usd,
+	pm.name as product_name,
+	pm.category,
+	pm.subcategory,
+	r.first_location,
+	r.last_location
+from stg_mov r
+left join stg.vw_order_line_sale_usd s
+on r.order_id = s.order_number
+left join stg.product_master pm
+on r.item = pm.product_code
+group by
+	r.order_id,
+	r.item,
+	r.date,
+	r.quantity*s.sale,
+	pm.name,
+	pm.category,
+	pm.subcategory,
+	r.first_location,
+	r.last_location;
 -- 5. Crear una tabla calendario llamada stg.date con las fechas del 2022 incluyendo el año fiscal y trimestre fiscal (en ingles Quarter). El año fiscal de la empresa comienza el primero Febrero de cada año y dura 12 meses. Realizar la tabla para 2022 y 2023. La tabla debe contener:
 /* - Fecha (date) `date`
 - Mes (date) `month`
