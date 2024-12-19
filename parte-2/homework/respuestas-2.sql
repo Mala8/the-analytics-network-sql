@@ -611,5 +611,16 @@ inner join month_sale m2
 on m1.mes = m2.mes - interval '1 month'
 and m1.store = m2.store;
 -- 2. Hacer un update a la tabla de stg.product_master agregando una columna llamada brand, con la marca de cada producto con la primer letra en mayuscula. Sabemos que las marcas que tenemos son: Levi's, Tommy Hilfiger, Samsung, Phillips, Acer, JBL y Motorola. En caso de no encontrarse en la lista usar Unknown.
-
+update stg.product_master
+set brand = 
+	case		
+		when lower(name) like '%levi''s%' then 'Levi''s'
+		when lower(name) like '%tommy hilfiger%' then 'Tommy Hilfiger'
+  		when lower(name) like '%samsung%' then 'Samsung'
+  		when lower(name) like '%philips%' then 'Phillips'
+  		when lower(name) like '%acer%' then 'Acer'
+  		when lower(name) like '%jbl%' then 'JBL'
+  		when lower(name) like '%motorola%' then 'Motorola'
+  	else 'Unknown'
+	end;
 -- 3. Un jefe de area tiene una tabla que contiene datos sobre las principales empresas de distintas industrias en rubros que pueden ser competencia y nos manda por mail la siguiente informacion: (ver informacion en md file)
