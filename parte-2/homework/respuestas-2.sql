@@ -587,7 +587,29 @@ group by
 -- ## Semana 4 - Parte B
 
 -- 1. Calcular el crecimiento de ventas por tienda mes a mes, con el valor nominal y el valor % de crecimiento. Utilizar self join.
+with month_sale as (
+select 
+	s.store,
+	cast(date_trunc('month',s.date) as date) as mes,
+	sum(s.sales_usd) as sale
+from stg.vw_order_line_sale_usd s
+group by
+	s.store,
+	cast(date_trunc('month',s.date) as date)
+)	
 
+select
+	m1.store,
+	m1.mes as prev_month,
+	m1.sale as prev_month,
+	m2.mes as next_month,
+	m2.sale as next_sale,
+	round((m2.sale - m1.sale),2) as diff_sale,
+	round(((m2.sale - m1.sale)/m1.sale)*100,2) as growth
+from month_sale m1
+inner join month_sale m2
+on m1.mes = m2.mes - interval '1 month'
+and m1.store = m2.store;
 -- 2. Hacer un update a la tabla de stg.product_master agregando una columna llamada brand, con la marca de cada producto con la primer letra en mayuscula. Sabemos que las marcas que tenemos son: Levi's, Tommy Hilfiger, Samsung, Phillips, Acer, JBL y Motorola. En caso de no encontrarse en la lista usar Unknown.
 
 -- 3. Un jefe de area tiene una tabla que contiene datos sobre las principales empresas de distintas industrias en rubros que pueden ser competencia y nos manda por mail la siguiente informacion: (ver informacion en md file)
