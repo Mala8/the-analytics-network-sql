@@ -638,3 +638,23 @@ insert into test.facturacion (empresa, rubro, facturacion)
 	('Falabella','Departamental',20460000),
 	('Tienda Inglesa','Departamental',10780000),
 	('Zara', 'Indumentaria',999980000);
+
+with cte_facturacion as (
+select 
+	rubro,
+	facturacion
+from test.facturacion
+)
+
+select 
+	rubro,
+Case
+	when sum(facturacion) >= 1000000000 then concat(cast(round(sum(facturacion)/1000000000,2) as varchar),'B')
+	when sum(facturacion) >= 1000000 then concat(cast(round(sum(facturacion)/1000000,2) as varchar),'M')
+	else cast(round(sum(facturacion),2) as varchar)
+	end as facturacion_total
+from cte_facturacion
+group by
+	rubro
+order by
+	rubro asc;
