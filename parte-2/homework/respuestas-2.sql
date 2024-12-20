@@ -624,3 +624,17 @@ set brand =
   	else 'Unknown'
 	end;
 -- 3. Un jefe de area tiene una tabla que contiene datos sobre las principales empresas de distintas industrias en rubros que pueden ser competencia y nos manda por mail la siguiente informacion: (ver informacion en md file)
+create schema test;
+
+create table test.facturacion(
+	empresa varchar(255) not null,
+	rubro varchar(255) not null,
+	facturacion numeric	
+);
+	
+insert into test.facturacion (empresa, rubro, facturacion)
+	values('El Corte Ingles','Departamental',110990000000),
+	('Mercado Libre','Ecommerce',115860000000),
+	('Falabella','Departamental',20460000),
+	('Tienda Inglesa','Departamental',10780000),
+	('Zara', 'Indumentaria',999980000);
