@@ -82,7 +82,11 @@ select
 		when currency = 'EUR' then (coalesce(tax,0) / fx_rate_usd_eur) 
 		when currency = 'URU' then (coalesce(tax,0) / fx_rate_usd_uru)
 		else tax
-	end tax_USD, -- continuar 
+	end tax_USD,
+	ols.quantity * cs.product_cost_usd as line_cost_usd,
+	rm.quantity as return_quantity,
+	first_value (from_location) over(partition by rm.return_id order by movement_id asc) as first_location,
+	last_value (to_location) over(partition by rm.return_id) as last_location-- continuar 
 	
 	
 	
