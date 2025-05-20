@@ -113,8 +113,15 @@ and rm.movement_id = 2
 left join stg.date d
 on ols.date = d.date
 where sp.is_primary = true
+),
+	
+cte_sales_metrics as (
+select
+	su.*,
+	su.gross_sale_usd - su.promotion_usd as net_sale_usd,
+	su.gross_sale_usd - su.promotion_usd - su.tax_usd - su.credit_usd as amount_paid_usd,
+	su.gross_sale_usd - su.promotion_usd - su.line_cost_usd as gross_margin_usd
+	
+from cte_sales_usd su
 )
 
-
-/*Select * 
-from cte_shrinkage*/
